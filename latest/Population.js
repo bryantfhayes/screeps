@@ -1,6 +1,7 @@
 function Population(room) {
 	this.room = room;
 	this.population = 0;
+	this.creeps = [];
 	this.populationLevelMultiplier = 8;
 
 	this.typeDistribution = {
@@ -61,7 +62,11 @@ function Population(room) {
 	};
 
 	try{
-		this.creeps = this.room.find(FIND_MY_CREEPS);
+		this.creeps = this.room.find(FIND_MY_CREEPS, {
+			filter: (creep) => {
+				return (creep.memory.srcRoom == this.room.name);
+			}
+		});
 		for(var i = 0; i < this.creeps.length; i++) {
 			var creepType = this.creeps[i].memory.role;
 			this.typeDistribution[creepType].total++;

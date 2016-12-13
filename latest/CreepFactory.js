@@ -23,7 +23,7 @@ CreepFactory.prototype.load = function(creep) {
 	var role = creep.memory.role;
 
 	if (role == undefined) {
-		creep.suicide();
+		//creep.suicide();
 	}
 
 	switch(role) {

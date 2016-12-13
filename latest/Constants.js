@@ -18,3 +18,5 @@ global.MAX_TRANSPORTS_PER_LINK = 1
 global.EXTENSION_FIND_RANGE = 20
 
 global.MIN_TOWER_REPAIR_RATIO = 0.50
+
+global.SC_CHRISTOPHER_COLUMBUS = {name: "Christopher Columbus", parts: [MOVE, MOVE, MOVE, MOVE, CLAIM]};
