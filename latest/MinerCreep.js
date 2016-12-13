@@ -10,6 +10,19 @@ MinerCreep.prototype.init = function() {
 
 MinerCreep.prototype.determineMode = function() {
     // TODO: determine mode for miner
+
+    // FIRST: check if there is a link in the room
+    var links = this.roomManager.room.find(FIND_MY_STRUCTURES, {
+        filter: (structure) => {
+            return (structure.structureType == STRUCTURE_LINK);
+        };
+    });
+    if (links != undefined && links.length > 0) {
+        return CREEP_MODE_MINE_WITH_LINK;
+    }
+
+    // SECOND: check to see if transport creep is subscribed to THIS creep
+    var subscribers = this.
 }
 
 MinerCreep.prototype.mine = function() {
@@ -69,7 +82,7 @@ MinerCreep.prototype.mineWithLink = function() {
 
 MinerCreep.prototype.doAction = function() {
 
-    this.determineMode();
+    this.mode = this.determineMode();
     
     // Creep isn't at full energy yet, mine!
     if (this.creep.carry.energy < this.creep.carryCapacity) {
