@@ -99,9 +99,10 @@ RoomManager.prototype.populate = function() {
 RoomManager.prototype.loadCreeps = function() {
 	// Find creeps this room controls
 	var creeps = Game.creeps;
-	var controlledCreeps = creeps.filter(function(c) {
-		return (c.memory.srcRoom == this.room.name);
-	});
+	// var controlledCreeps = creeps.filter(function(c) {
+	// 	return (c.memory.srcRoom == this.room.name);
+	// });
+	var controlledCreeps = creeps;
 
 	for(var n in controlledCreeps) {
 		var c = this.creepFactory.load(controlledCreeps[n]);
@@ -126,7 +127,30 @@ RoomManager.prototype.performTowerActions = function() {
 // returns the object that energy should be brought to
 // based on structures available in the current room.
 RoomManager.prototype.getPrefferedEnergyDropOff = function() {
-	
+	// FIRST: check for a storage unit
+	var storages = this.room.find(FIND_MY_STRUCTURES, {
+		filter: (structures) => {
+			return (structures.structureType == STRUCTURE_STORAGE);
+		}
+	});
+	if (storages != undefined || storages.length > 0) {
+		return storages[0];
+	}
+
+	// SECOND: if no storages, try non-full spawn or extensions
+	var spawns_and_extensions = this.room.find(FIND_MY_STRUCTURES, {
+		filter: (structures) => {
+			return(((structures.structureType == STRUCTURE_SPAWN) ||
+				    (structures.structureType == STRUCTURE_EXTENSION)) &&
+					(structures.energy < structures.energyCapacity));
+		}
+	});
+	if (spawns_and_extensions != undefined && spawns_and_extensions.length > 0) {
+		return spawns_and_extensions[0];
+	}
+
+	// THIRD: nothing is available
+	return undefined;
 }
 
 module.exports = RoomManager;

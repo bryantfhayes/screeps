@@ -15,14 +15,20 @@ MinerCreep.prototype.determineMode = function() {
     var links = this.roomManager.room.find(FIND_MY_STRUCTURES, {
         filter: (structure) => {
             return (structure.structureType == STRUCTURE_LINK);
-        };
+        }
     });
     if (links != undefined && links.length > 0) {
         return CREEP_MODE_MINE_WITH_LINK;
     }
 
     // SECOND: check to see if transport creep is subscribed to THIS creep
-    var subscribers = this.
+    var subscribers = this.subscribersOfType("TransportCreep");
+    if (subscribers == undefined || subscribers > 0) {
+        return CREEP_MODE_MINE_WITH_TRANSPORT;
+    }
+
+    // THIRD: if no links or transports, work as a harvester
+    return CREEP_MODE_MINE_AS_HARVESTER;
 }
 
 MinerCreep.prototype.mine = function() {
@@ -55,6 +61,7 @@ MinerCreep.prototype.mine = function() {
 }
 
 MinerCreep.prototype.mineAsHarvester = function() {
+    this.creep.say("harvest");
     var target = this.roomManager.getPrefferedEnergyDropOff();
     if (target == undefined) {
         console.log(this.creep.name + " the miner doesn't know where to drop of energy!");
@@ -67,16 +74,25 @@ MinerCreep.prototype.mineAsHarvester = function() {
 }
 
 MinerCreep.prototype.mineWithTransport = function() {
+    this.creep.say("transport");
     this.creep.drop(RESOURCE_ENERGY, this.creep.carry.energy);
 }
 
 // Miner should transfer collected energy to the nearby Link
 MinerCreep.prototype.mineWithLink = function() {
-    var link = this.creep.pos.findClosestByRange(STRUCTURE_LINK);
+    this.creep.say("link");
+    var link = this.creep.pos.findClosestByRange(FIND_MY_STRUCTURES, {
+        filter: (structures) => {
+            return (structures.structureType == STRUCTURE_LINK);
+        }
+    });
     if (link != undefined) {
+        console.log("transfer to link")
         if (this.creep.transfer(link, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
             this.creep.moveTo(link);
         }
+    } else {
+        console.log(this.creep.name + " cant find a link!")
     }
 }
 
@@ -97,10 +113,10 @@ MinerCreep.prototype.doAction = function() {
                 this.mineWithTransport();
                 break;
             case(CREEP_MODE_MINE_WITH_LINK):
-                this.mineWithLink();
+                this.mineAsHarvester();
                 break;
             default:
-                this.mineAsHarvester();
+                this.mineWithLink();
         }
     }
 }
