@@ -49,10 +49,10 @@ TransportCreep.prototype.determineMode = function() {
     }
 
     // THIRD: transfer to towers if they need it
-    var towers = this.roomManager.room.find(FIND_MY_STRUCTURES, {
+    var towers = this.roomManager.room.find(FIND_STRUCTURES, {
         filter: (structures) => {
             return (structures.structureType == STRUCTURE_TOWER &&
-                    structures.hits < structures.hitsMax * MIN_TOWER_REPAIR_RATIO &&
+                    structures.energy < structures.energyCapacity * MIN_TOWER_REPAIR_RATIO &&
                     structures.subscribersOfType("TransportCreep") < MAX_TRANSPORTS_PER_TOWER);
         }
     });
