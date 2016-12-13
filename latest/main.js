@@ -17,6 +17,7 @@ for(var n in roomManagers) {
     var roomManager = roomManagers[n];
     roomManager.loadCreeps();
     roomManager.populate();
+    roomManager.performLinkActions();
     roomManager.performCreepActions();
     roomManager.performTowerActions();
 };

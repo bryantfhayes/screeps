@@ -1,3 +1,5 @@
+var Utilities = require('Utilities');
+
 var MinerCreep = function(creep, roomManager) {
 	this.creep = creep;
 	this.roomManager = roomManager;
@@ -9,7 +11,6 @@ MinerCreep.prototype.init = function() {
 }
 
 MinerCreep.prototype.determineMode = function() {
-    // TODO: determine mode for miner
 
     // FIRST: check if there is a link in the room
     var links = this.roomManager.room.find(FIND_MY_STRUCTURES, {
@@ -61,10 +62,16 @@ MinerCreep.prototype.mine = function() {
 }
 
 MinerCreep.prototype.mineAsHarvester = function() {
-    this.creep.say("harvest");
-    var target = this.roomManager.getPrefferedEnergyDropOff();
+    Utilities.exclaim(this.creep, "M.harvest");
+    var target = undefined;
+    var targets = this.roomManager.getPrefferedEnergyDropOff();
+
+    if (targets != undefined && targets.length > 0) {
+        target = targets[0];
+    }
+
     if (target == undefined) {
-        console.log(this.creep.name + " the miner doesn't know where to drop of energy!");
+        //console.log(this.creep.name + " the miner doesn't know where to drop of energy!");
         return
     }
 
@@ -74,25 +81,27 @@ MinerCreep.prototype.mineAsHarvester = function() {
 }
 
 MinerCreep.prototype.mineWithTransport = function() {
-    this.creep.say("transport");
+    Utilities.exclaim(this.creep, "M.transport");
     this.creep.drop(RESOURCE_ENERGY, this.creep.carry.energy);
 }
 
 // Miner should transfer collected energy to the nearby Link
 MinerCreep.prototype.mineWithLink = function() {
-    this.creep.say("link");
+    Utilities.exclaim(this.creep, "M.link");
     var link = this.creep.pos.findClosestByRange(FIND_MY_STRUCTURES, {
         filter: (structures) => {
             return (structures.structureType == STRUCTURE_LINK);
         }
     });
     if (link != undefined) {
-        console.log("transfer to link")
+        //console.log("transfer to link")
+        this.creep.subscribe(link);
+        //console.log(this.creep.name + " is subscribed to link")
         if (this.creep.transfer(link, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
             this.creep.moveTo(link);
         }
     } else {
-        console.log(this.creep.name + " cant find a link!")
+        //console.log(this.creep.name + " cant find a link!")
     }
 }
 
@@ -113,10 +122,10 @@ MinerCreep.prototype.doAction = function() {
                 this.mineWithTransport();
                 break;
             case(CREEP_MODE_MINE_WITH_LINK):
-                this.mineAsHarvester();
+                this.mineWithLink();
                 break;
             default:
-                this.mineWithLink();
+                this.mineAsHarvester();
         }
     }
 }

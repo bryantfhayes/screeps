@@ -107,16 +107,16 @@ CreepFactory.prototype.new = function(type, spawn) {
 		case 'ContainerMaintenanceCreep':
 		case 'TowerMasterCreep':
 			if(level <= 1) {
-				parts = [MOVE, CARRY, MOVE, CARRY];
+				parts = [MOVE, CARRY];
 			} else
 			if(level <= 2) {
-				parts = [MOVE, CARRY, MOVE, CARRY, CARRY, CARRY];
+				parts = [MOVE, CARRY, MOVE, CARRY];
 			} else
 			if(level <= 3) {
-				parts = [MOVE, CARRY, MOVE, CARRY, CARRY, CARRY];
+				parts = [MOVE, MOVE, MOVE, CARRY, CARRY, CARRY];
 			} else
 			if(level <= 4) {
-				parts = [MOVE, MOVE, CARRY, MOVE, CARRY, CARRY, CARRY];
+				parts = [MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY];
 			}
 		break;
 		case 'MaintenanceCreep':

@@ -124,6 +124,34 @@ RoomManager.prototype.performTowerActions = function() {
 	}
 }
 
+RoomManager.prototype.performLinkActions = function() {
+	var fromLinks = this.room.find(FIND_MY_STRUCTURES, {
+		filter: (structure) => {
+			return (structure.structureType == STRUCTURE_LINK &&
+				    structure.subscribersOfType("MinerCreep") > 0);
+		}
+	});
+
+	var toLinks = this.room.find(FIND_MY_STRUCTURES, {
+		filter: (structure) => {
+			return (structure.structureType == STRUCTURE_LINK &&
+				    structure.subscribersOfType("MinerCreep") < 1);
+		}
+	});
+
+	if (toLinks == undefined || toLinks.length < 1) {
+		console.log("WARNING: no to links!")
+		return false
+	}
+
+	for (var n in fromLinks) {
+		if (fromLinks[n].energy >= fromLinks[n].energyCapacity * 0.25) {
+			//console.log("SUCCESS: transfer from " + fromLinks[n].id)
+			fromLinks[n].transferEnergy(toLinks[0]);
+		}
+	}
+}
+
 // returns the object that energy should be brought to
 // based on structures available in the current room.
 RoomManager.prototype.getPrefferedEnergyDropOff = function() {
@@ -134,7 +162,7 @@ RoomManager.prototype.getPrefferedEnergyDropOff = function() {
 		}
 	});
 	if (storages != undefined || storages.length > 0) {
-		return storages[0];
+		return storages;
 	}
 
 	// SECOND: if no storages, try non-full spawn or extensions
@@ -146,7 +174,7 @@ RoomManager.prototype.getPrefferedEnergyDropOff = function() {
 		}
 	});
 	if (spawns_and_extensions != undefined && spawns_and_extensions.length > 0) {
-		return spawns_and_extensions[0];
+		return spawns_and_extensions;
 	}
 
 	// THIRD: nothing is available

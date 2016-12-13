@@ -246,4 +246,10 @@ RoomObject.prototype.subscribersOfType = function(type) {
     }
 }
 
+Utilities.exclaim = function(creep, msg) {
+    if (Game.time % 10 == 0) {
+        creep.say(msg);
+    }
+}
+
 module.exports = Utilities;
