@@ -152,6 +152,39 @@ RoomManager.prototype.performLinkActions = function() {
 	}
 }
 
+RoomManager.prototype.getPrefferedEnergyPickUp = function(ignore) {
+	if (ignore == undefined) {
+		ignore = {}
+		ignore.storage = false
+		ignore.spawn = false
+	}
+	// FIRST: check for a storage unit
+	var storages = this.room.find(FIND_MY_STRUCTURES, {
+		filter: (structure) => {
+			return (structure.structureType == STRUCTURE_STORAGE &&
+				    structure.store[RESOURCE_ENERGY] > 0);
+		}
+	});
+	if ((storages != undefined || storages.length > 0) && (ignore.storage != true)) {
+		return storages;
+	}
+
+	// SECOND: if no storages, try non-full spawn or extensions
+	var spawns_and_extensions = this.room.find(FIND_MY_STRUCTURES, {
+		filter: (structure) => {
+			return(((structure.structureType == STRUCTURE_SPAWN) ||
+				    (structure.structureType == STRUCTURE_EXTENSION)) &&
+					(structure.energy > 0));
+		}
+	});
+	if ((spawns_and_extensions != undefined && spawns_and_extensions.length > 0) && (ignore.spawn != true)) {
+		return spawns_and_extensions;
+	}
+
+	// THIRD: nothing is available
+	return undefined;
+}
+
 // returns the object that energy should be brought to
 // based on structures available in the current room.
 RoomManager.prototype.getPrefferedEnergyDropOff = function() {

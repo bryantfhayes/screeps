@@ -6,7 +6,7 @@ var Constants = require('Constants');
 var myRooms = ['W7N4'];
 
 // Spawn all special screeps
-GameManager.loadSpecialCreeps();
+//GameManager.loadSpecialCreeps();
 
 // Init rooms
 for(var n in myRooms) {

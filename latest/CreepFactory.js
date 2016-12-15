@@ -151,10 +151,10 @@ CreepFactory.prototype.new = function(type, spawn) {
 		break;
 		case 'MinerCreep':
 			if(level <= 1) {
-				parts = [CARRY, MOVE, WORK, WORK, WORK];
+				parts = [CARRY, MOVE, WORK];
 			} else
 			if(level <= 2) {
-				parts = [CARRY, MOVE, WORK, WORK, WORK, WORK];
+				parts = [CARRY, MOVE, WORK, WORK];
 			} else
 			if(level <= 3) {
 				parts = [CARRY, MOVE, WORK, WORK, WORK, WORK, WORK, WORK];

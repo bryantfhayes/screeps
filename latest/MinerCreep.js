@@ -15,7 +15,8 @@ MinerCreep.prototype.determineMode = function() {
     // FIRST: check if there is a link in the room
     var links = this.roomManager.room.find(FIND_MY_STRUCTURES, {
         filter: (structure) => {
-            return (structure.structureType == STRUCTURE_LINK);
+            return (structure.structureType == STRUCTURE_LINK &&
+                    structure.energy < structure.energyCapacity);
         }
     });
     if (links != undefined && links.length > 0) {

@@ -87,6 +87,19 @@ TransportCreep.prototype.determineMode = function() {
                     (structure.subscribersOfType("TransportCreep") < MAX_TRANSPORTS_FOR_CONTAINERS));
         }
     });
+
+    // Make sure there are containers to begin with
+    var containers = this.roomManager.room.find(FIND_STRUCTURES, {
+        filter: (structure) => {
+            return (structure.structureType == STRUCTURE_CONTAINER &&
+                    structure.store[RESOURCE_ENERGY] < structure.storeCapacity);
+        }
+    })
+
+    if (containers == undefined || containers.length < 1) {
+        return CREEP_MODE_UNKNOWN;
+    }
+
     if (controllers != undefined && controllers.length > 0) {
         var controller = controllers[0];
         this.creep.subscribe(controller);
@@ -220,7 +233,7 @@ TransportCreep.prototype.transportStorageToSpawn = function() {
     // Transport is out of energy, go to preffered energy spot for more
     } else {
         var source = undefined;
-        var sources = this.roomManager.getPrefferedEnergyDropOff();
+        var sources = this.roomManager.getPrefferedEnergyPickUp({spawn: false});
         if (sources != undefined && sources.length > 0) {
             source = sources[0];
         } else {
@@ -252,7 +265,8 @@ TransportCreep.prototype.transportStorageToContainers = function() {
         var target = controller.pos.findClosestByRange(FIND_STRUCTURES, {
             filter: (structures) => {
                 return ((structures.structureType == STRUCTURE_CONTAINER) && 
-                        structures.store[RESOURCE_ENERGY] < structures.storeCapacity);
+                        structures.store[RESOURCE_ENERGY] < structures.storeCapacity &&
+                        structures.room.name == this.creep.memory.srcRoom);
             }
         });
 

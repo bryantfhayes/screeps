@@ -20,7 +20,7 @@ function Population(room) {
 		TransportCreep: {
 			total: 0,
 			currentPercentage: 0,
-			max: 6,
+			max: 4,
 			minExtensions: 0
 		},
 		ContainerMaintenanceCreep: {
@@ -32,7 +32,7 @@ function Population(room) {
 		UpgraderCreep: {
 			total: 0,
 			currentPercentage: 0,
-			max: 4,
+			max: 1,
 			minExtensions: 0
 		},
 		MaintenanceCreep: {
@@ -44,7 +44,7 @@ function Population(room) {
 		BuilderCreep: {
 			total: 0,
 			currentPercentage: 0,
-			max: 0,
+			max: 2,
 			minExtensions: 0
 		},
 		SoldierCreep: {
