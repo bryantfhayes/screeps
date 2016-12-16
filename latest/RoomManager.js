@@ -165,7 +165,8 @@ RoomManager.prototype.getPrefferedEnergyPickUp = function(ignore) {
 				    structure.store[RESOURCE_ENERGY] > 0);
 		}
 	});
-	if ((storages != undefined || storages.length > 0) && (ignore.storage != true)) {
+	if ((storages != undefined && storages.length > 0) && (ignore.storage != true)) {
+		console.log("storage!")
 		return storages;
 	}
 
@@ -181,7 +182,19 @@ RoomManager.prototype.getPrefferedEnergyPickUp = function(ignore) {
 		return spawns_and_extensions;
 	}
 
-	// THIRD: nothing is available
+	// THIRD: try collecting from links in the room that have no miners subscribed
+	var toLinks = this.room.find(FIND_MY_STRUCTURES, {
+		filter: (structure) => {
+			return (structure.structureType == STRUCTURE_LINK &&
+				    structure.subscribersOfType("MinerCreep") < 1);
+		}
+	});
+
+	if (toLinks != undefined && toLinks.length > 0) {
+		return toLinks;
+	}
+
+	// GIVE UP!
 	return undefined;
 }
 
@@ -194,7 +207,7 @@ RoomManager.prototype.getPrefferedEnergyDropOff = function() {
 			return (structures.structureType == STRUCTURE_STORAGE);
 		}
 	});
-	if (storages != undefined || storages.length > 0) {
+	if (storages != undefined && storages.length > 0) {
 		return storages;
 	}
 

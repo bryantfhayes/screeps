@@ -1,3 +1,5 @@
+var Utilities = require("Utilities");
+
 var UpgraderCreep = function(creep, roomManager) {
 	this.creep = creep;
 	this.roomManager = roomManager;

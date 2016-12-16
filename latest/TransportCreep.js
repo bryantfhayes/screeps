@@ -233,7 +233,7 @@ TransportCreep.prototype.transportStorageToSpawn = function() {
     // Transport is out of energy, go to preffered energy spot for more
     } else {
         var source = undefined;
-        var sources = this.roomManager.getPrefferedEnergyPickUp({spawn: false});
+        var sources = this.roomManager.getPrefferedEnergyPickUp({spawn: true});
         if (sources != undefined && sources.length > 0) {
             source = sources[0];
         } else {
@@ -344,6 +344,7 @@ TransportCreep.prototype.transportLinkToStorage = function() {
 TransportCreep.prototype.doAction = function() {
     
     if (this.mode == undefined || this.mode == CREEP_MODE_UNKNOWN) {
+        console.log(this.creep.name + " is looking for work!");
         this.mode = this.determineMode();
         this.save('mode', this.mode);
     }
