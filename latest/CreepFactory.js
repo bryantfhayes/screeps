@@ -69,12 +69,11 @@ CreepFactory.prototype.load = function(creep) {
 CreepFactory.prototype.new = function(type, spawn) {
 	var parts = [];
 	var level = 1;
-	if (this.roomManager.population.getTotalPopulation() >= this.roomManager.population.getMaxPopulation() * 0.75) {
+	if (this.roomManager.room.energyAvailable > 400) {
 		level = 4;
-	} else if (this.roomManager.population.getTotalPopulation() >= this.roomManager.population.getMaxPopulation() * 0.5) {
+	} else if (this.roomManager.room.energyAvailable > 800) {
 		level = 3;
 	}
-	
 
 	// PRICES
 	// ------------------
