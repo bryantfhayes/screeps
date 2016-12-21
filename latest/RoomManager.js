@@ -166,7 +166,6 @@ RoomManager.prototype.getPrefferedEnergyPickUp = function(ignore) {
 		}
 	});
 	if ((storages != undefined && storages.length > 0) && (ignore.storage != true)) {
-		console.log("storage!")
 		return storages;
 	}
 

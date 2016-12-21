@@ -21,4 +21,4 @@ global.EXTENSION_FIND_RANGE = 20
 
 global.MIN_TOWER_REPAIR_RATIO = 0.90
 
-global.SC_CHRISTOPHER_COLUMBUS = {name: "Christopher Columbus", parts: [MOVE, MOVE, MOVE, MOVE, CLAIM]};
+global.SC_CHRISTOPHER_COLUMBUS = {name: "Christopher Columbus", parts: [MOVE, MOVE, MOVE, CARRY, WORK, CLAIM]};

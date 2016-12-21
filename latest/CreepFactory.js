@@ -69,9 +69,11 @@ CreepFactory.prototype.load = function(creep) {
 CreepFactory.prototype.new = function(type, spawn) {
 	var parts = [];
 	var level = 1;
-	if (this.roomManager.room.energyAvailable > 400) {
+	if (this.roomManager.room.energyAvailable > 5000) {
+		level = 5;
+	} else if (this.roomManager.room.energyAvailable > 1000) {
 		level = 4;
-	} else if (this.roomManager.room.energyAvailable > 800) {
+	} else if (this.roomManager.room.energyAvailable > 400) {
 		level = 3;
 	}
 
@@ -99,7 +101,11 @@ CreepFactory.prototype.new = function(type, spawn) {
 			} else
 			if(level <= 4) {
 				parts = [WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, MOVE];
+			} else
+			if(level <= 5) {
+				parts = [MOVE, MOVE, MOVE, WORK, WORK, CARRY, CARRY, CARRY, MOVE, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY];
 			}
+
 		break;
 		case 'TransportCreep':
 		case 'SpawnMaintenanceCreep':
@@ -116,6 +122,9 @@ CreepFactory.prototype.new = function(type, spawn) {
 			} else
 			if(level <= 4) {
 				parts = [MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY];
+			} else
+			if(level <= 5) {
+				parts = [MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY];
 			}
 		break;
 		case 'MaintenanceCreep':
@@ -131,6 +140,9 @@ CreepFactory.prototype.new = function(type, spawn) {
 			} else
 			if(level <= 4) {
 				parts = [WORK, WORK, WORK, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE];
+			} else
+			if(level <= 5) {
+				parts = [WORK, WORK, WORK, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE];
 			}
 		break;
 		case 'SoldierCreep':
@@ -146,6 +158,10 @@ CreepFactory.prototype.new = function(type, spawn) {
 			if(level <= 4) {
 			    //parts = [ATTACK, MOVE];
 				parts = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, ATTACK, ATTACK, ATTACK, ATTACK, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL, HEAL, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
+			} else 
+			if(level <= 5) {
+			    //parts = [ATTACK, MOVE];
+				parts = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, ATTACK, ATTACK, ATTACK, ATTACK, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL, HEAL, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
 			}
 		break;
 		case 'MinerCreep':
@@ -159,6 +175,9 @@ CreepFactory.prototype.new = function(type, spawn) {
 				parts = [CARRY, MOVE, WORK, WORK, WORK, WORK, WORK, WORK];
 			} else
 			if(level <= 4) {
+				parts = [CARRY, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY];
+			} else
+			if(level <= 5) {
 				parts = [CARRY, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY];
 			}
 		break;
