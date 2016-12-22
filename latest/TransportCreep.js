@@ -257,8 +257,8 @@ TransportCreep.prototype.transportStorageToTower = function() {
             return;
         }
 
-        if(this.creep.transfer(tower, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-            this.creep.moveTo(tower);
+        if(this.creep.withdraw(source, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+            this.creep.moveTo(source);
         }
     }
 }

@@ -9,6 +9,8 @@ var MaintenanceCreep = require('MaintenanceCreep');
 var SoldierCreep = require('SoldierCreep');
 var MinerCreep = require('MinerCreep');
 var RemoteMinerCreep = require('RemoteMinerCreep');
+var Barbarian = require('Barbarian');
+var Monk = require('Monk');
 
 var BasicCreep = require('BasicCreep');
 
@@ -46,6 +48,12 @@ CreepFactory.prototype.load = function(creep) {
 		case 'RemoteMinerCreep':
 			loadedCreep = new RemoteMinerCreep(creep, this.roomManager);
 			break;
+		case 'Barbarian':
+			loadedCreep = new Barbarian(creep, this.roomManager);
+			break;
+		case 'Monk':
+			loadedCreep = new Monk(creep, this.roomManager);
+			break;
 	}
 
 	if(!loadedCreep) {
@@ -58,7 +66,7 @@ CreepFactory.prototype.load = function(creep) {
 	return loadedCreep;
 }
 
-CreepFactory.prototype.new = function(type, spawn) {
+CreepFactory.prototype.new = function(type, spawn, custom_level) {
 	var parts = [];
 	var level = 1;
 	if (this.roomManager.room.energyAvailable > 3000) {
@@ -67,6 +75,11 @@ CreepFactory.prototype.new = function(type, spawn) {
 		level = 4;
 	} else if (this.roomManager.room.energyAvailable > 400) {
 		level = 3;
+	}
+
+	// Override for custom creeps
+	if (custom_level != undefined) {
+		level = custom_level;
 	}
 
 	// PRICES
@@ -186,6 +199,45 @@ CreepFactory.prototype.new = function(type, spawn) {
 			if(level <= 5) {
 				parts = [CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY];
 			}
+			break;
+		case 'Barbarian':
+			if(level <= 1) {
+				parts = [MOVE, ATTACK];
+			} else
+			if(level <= 2) {
+				parts = [MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK];
+			} else
+			if(level <= 3) {
+				parts = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK];
+			} else
+			if(level <= 4) {
+				// 11 MOVE, 10 ATTACK
+				parts = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK];
+			} else
+			if(level <= 5) {
+				// 16 MOVE, 15 ATTACK
+				parts = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK];
+			}
+			break;
+		case 'Monk':
+			if(level <= 1) {
+				parts = [MOVE, HEAL];
+			} else
+			if(level <= 2) {
+				parts = [MOVE, MOVE, MOVE, HEAL, HEAL, HEAL];
+			} else
+			if(level <= 3) {
+				parts = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL];
+			} else
+			if(level <= 4) {
+				// 11 MOVE, 10 HEAL
+				parts = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL];
+			} else
+			if(level <= 5) {
+				// 16 MOVE, 15 HEAL
+				parts = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL];
+			}
+			break;
 		
 	}
 

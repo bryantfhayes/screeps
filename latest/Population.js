@@ -15,7 +15,7 @@ function Population(roomManager) {
 		TransportCreep: {
 			total: 0,
 			currentPercentage: 0,
-			max: 4,
+			max: 5,
 			minExtensions: 0
 		},
 		UpgraderCreep: {
@@ -31,9 +31,9 @@ function Population(roomManager) {
 			minExtensions: 0
 		}, 
 		BuilderCreep: {
-			total: 0,
+			total: 0, 
 			currentPercentage: 0,
-			max: 0,
+			max: 1,
 			minExtensions: 0
 		},
 		SoldierCreep: {
@@ -46,6 +46,18 @@ function Population(roomManager) {
 			total: 0,
 			currentPercentage: 0,
 			max: 2,
+			minExtensions: 0
+		},
+		Barbarian: {
+			total: 0,
+			currentPercentage: 0,
+			max: 0,
+			minExtensions: 0
+		},
+		Monk: {
+			total: 0,
+			currentPercentage: 0,
+			max: 0,
 			minExtensions: 0
 		}
 	};

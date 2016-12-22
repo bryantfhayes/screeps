@@ -77,6 +77,18 @@ GameManager.christopher_columbus = function() {
     }
 }
 
+GameManager.spawnCreep = function(name, type, level) {
+    var roomManager = GameManager.get(name);
+    if (roomManager == undefined) {
+        return false;
+    }
+    var spawn = roomManager.getAvailableSpawn();
+    if (spawn == undefined) {
+        return false;
+    }
+    roomManager.creepFactory.new(type, spawn, level);
+}
+
 GameManager.performSpecialCreepActions = function() {
     if (Game.creeps[SC_CHRISTOPHER_COLUMBUS.name] != undefined) {
         this.christopher_columbus();
