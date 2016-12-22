@@ -24,8 +24,13 @@ BuilderCreep.prototype.getEnergy = function() {
 
     // Save structure if found, otherwise go on break.
     if (sources && sources.length > 0) {
-        if(this.creep.withdraw(sources[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-            this.creep.moveTo(sources[0]);
+        var source = sources[0];
+        var priorEnergy = this.creep.carry.energy
+        var result = this.creep.withdraw(source, RESOURCE_ENERGY)
+        if(result == ERR_NOT_IN_RANGE) {
+            this.creep.moveTo(source);
+        } else if (result == OK) {
+            this.roomManager.energyTransaction(-(this.creep.carry.energy - priorEnergy))
         }
     } else {
         this.creep.moveTo(Game.flags['breakroom']);

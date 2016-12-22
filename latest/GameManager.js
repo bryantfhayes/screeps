@@ -25,6 +25,35 @@ GameManager.getRoomManagers = function() {
     return roomManagers;
 };
 
+GameManager.status = function() {
+    for (var n in roomManagers) {
+        var roomManager = roomManagers[n];
+        var status = roomManager.getStatus();
+        if (status != undefined) {
+            console.log(roomManager.room.name + " +" + status.energy_in + "/-" + status.energy_out + " = net: " + (status.energy_in - status.energy_out));
+        }
+    }
+}
+
+GameManager.calculateEfficiency = function() {
+    for (var n in roomManagers) {
+        var roomManager = roomManagers[n];
+        var status = roomManager.getStatus();
+        if (status != undefined) {
+            var net = (status.energy_in - status.energy_out)
+            console.log(roomManager.room.name + " +" + status.energy_in + "/-" + status.energy_out + " = net: " + net);
+            
+            var lastNetEnergy = roomManager.load('lastNetEnergy');
+            if (lastNetEnergy != undefined) { 
+                var currentEfficiency = net - lastNetEnergy;
+                roomManager.save('1000-tick-net', currentEfficiency);
+                roomManager.save('energy-per-tick', currentEfficiency / 1000);
+            }
+            roomManager.save('lastNetEnergy', net);
+        }
+    }
+}
+
 GameManager.loadSpecialCreeps = function() {
     for (var n in Game.spawns) {
         if (Game.spawns[n].canCreateCreep(SC_CHRISTOPHER_COLUMBUS.parts, SC_CHRISTOPHER_COLUMBUS.name) == OK) {

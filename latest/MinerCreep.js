@@ -91,8 +91,12 @@ MinerCreep.prototype.mineAsHarvester = function() {
         return
     }
 
-    if (this.creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+    var priorEnergy = this.creep.carry.energy
+    var result = this.creep.transfer(target, RESOURCE_ENERGY)
+    if (result == ERR_NOT_IN_RANGE) {
         this.creep.moveTo(target);
+    } else if (result == OK) {
+        this.roomManager.energyTransaction(priorEnergy)
     }
 }
 

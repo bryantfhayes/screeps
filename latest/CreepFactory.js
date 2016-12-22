@@ -61,7 +61,7 @@ CreepFactory.prototype.load = function(creep) {
 CreepFactory.prototype.new = function(type, spawn) {
 	var parts = [];
 	var level = 1;
-	if (this.roomManager.room.energyAvailable > 5000) {
+	if (this.roomManager.room.energyAvailable > 3000) {
 		level = 5;
 	} else if (this.roomManager.room.energyAvailable > 1000) {
 		level = 4;
@@ -201,6 +201,11 @@ CreepFactory.prototype.new = function(type, spawn) {
 	}
 
 	console.log('Spawn LV ' + level + ' ' + type);
+	var cost = 0;
+	for (var i = 0; i < parts.length; i++) {
+		cost += BODYPART_COST[parts[i]];
+	}
+	this.roomManager.energyTransaction(-cost);
 	spawn.createCreep(parts, undefined, {role: type, srcRoom: this.roomManager.room.name});
 }
 

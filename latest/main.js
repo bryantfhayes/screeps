@@ -26,4 +26,8 @@ for(var n in roomManagers) {
     roomManager.performTowerActions();
 };
 
+if (Game.time % 1000 == 0) {
+	GameManager.calculateEfficiency();
+}
+
 Utilities.garbageCollection();

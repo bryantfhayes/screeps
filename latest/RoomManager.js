@@ -74,6 +74,34 @@ RoomManager.prototype.init = function() {
 	}
 }
 
+RoomManager.prototype.energyTransaction = function(amount) {
+	if (amount < 0) {
+		var energy_out = this.load('energy_out');
+		if (energy_out == undefined) {
+			this.save('energy_out', Math.abs(amount))
+		} else {
+			energy_out += Math.abs(amount)
+			this.save('energy_out', energy_out);
+		}
+	} else {
+		var energy_in = this.load('energy_in');
+		if (energy_in == undefined) {
+			this.save('energy_in', Math.abs(amount))
+		} else {
+			energy_in += Math.abs(amount)
+			this.save('energy_in', energy_in);
+		}
+	}
+}
+
+RoomManager.prototype.getStatus = function() {
+	var status = {
+		energy_in: this.load('energy_in'),
+		energy_out: this.load('energy_out')
+	}
+	return status;
+}
+
 RoomManager.prototype.save = function(key, value) {
 	Utilities.save(['Rooms', this.room.name, key].join('.'), value);
 };

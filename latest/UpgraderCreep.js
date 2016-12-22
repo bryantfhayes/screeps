@@ -32,8 +32,12 @@ UpgraderCreep.prototype.doAction = function() {
         // Save structure if found, otherwise go on break.
         if (sources != undefined && sources.length > 0) {
             var source = sources[0];
-            if(this.creep.withdraw(source, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+            var priorEnergy = this.creep.carry.energy
+            var result = this.creep.withdraw(source, RESOURCE_ENERGY)
+            if(result == ERR_NOT_IN_RANGE) {
                 this.creep.moveTo(source);
+            } else if (result == OK) {
+                this.roomManager.energyTransaction(-(this.creep.carry.energy - priorEnergy))
             }
         } else {
             this.creep.moveTo(Game.flags['breakroom']);

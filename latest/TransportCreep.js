@@ -137,9 +137,14 @@ TransportCreep.prototype.transportMinerToStorage = function() {
             return;
         }
 
-        if(this.creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+        var priorEnergy = this.creep.carry.energy
+        var result = this.creep.transfer(target, RESOURCE_ENERGY)
+        if(result == ERR_NOT_IN_RANGE) {
             this.creep.moveTo(target);
+        } else if (result == OK) {
+            this.roomManager.energyTransaction(priorEnergy);
         }
+
     } else {
         var source = undefined;
 
@@ -180,9 +185,14 @@ TransportCreep.prototype.transportRemoteMinerToStorage = function() {
             return;
         }
 
-        if(this.creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+        var priorEnergy = this.creep.carry.energy
+        var result = this.creep.transfer(target, RESOURCE_ENERGY)
+        if(result == ERR_NOT_IN_RANGE) {
             this.creep.moveTo(target);
+        } else if (result == OK) {
+            this.roomManager.energyTransaction(priorEnergy);
         }
+
     } else {
         var source = undefined;
 
@@ -227,14 +237,18 @@ TransportCreep.prototype.transportStorageToTower = function() {
             return;
         }
 
-        if (this.creep.transfer(tower, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+        var priorEnergy = this.creep.carry.energy
+        var result = this.creep.transfer(tower, RESOURCE_ENERGY)
+        if(result == ERR_NOT_IN_RANGE) {
             this.creep.moveTo(tower);
+        } else if (result == OK) {
+            this.roomManager.energyTransaction(-priorEnergy);
         }
 
     // Transport is out of energy, go to preffered energy spot for more
     } else {
         var source = undefined;
-        var sources = this.roomManager.getPrefferedEnergyDropOff();
+        var sources = this.roomManager.getPrefferedEnergyPickUp();
         if (sources != undefined && sources.length > 0) {
             source = sources[0];
         } else {
@@ -243,8 +257,8 @@ TransportCreep.prototype.transportStorageToTower = function() {
             return;
         }
 
-        if (this.creep.withdraw(source, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-            this.creep.moveTo(source);
+        if(this.creep.transfer(tower, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+            this.creep.moveTo(tower);
         }
     }
 }
@@ -273,9 +287,11 @@ TransportCreep.prototype.transportStorageToSpawn = function() {
         });
 
         if (target != undefined) {
-            if (this.creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+
+            if(this.creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                 this.creep.moveTo(target);
             }
+
         } else {
             // No target nearby!
             this.save('mode', CREEP_MODE_UNKNOWN);
@@ -324,9 +340,11 @@ TransportCreep.prototype.transportStorageToContainers = function() {
         });
 
         if (target != undefined) {
-            if (this.creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+
+            if(this.creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                 this.creep.moveTo(target);
             }
+
         } else {
             // No target nearby!
             this.save('mode', CREEP_MODE_UNKNOWN);
@@ -367,8 +385,12 @@ TransportCreep.prototype.transportLinkToStorage = function() {
             return;
         }
 
-        if(this.creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+        var priorEnergy = this.creep.carry.energy
+        var result = this.creep.transfer(target, RESOURCE_ENERGY)
+        if(result == ERR_NOT_IN_RANGE) {
             this.creep.moveTo(target);
+        } else if (result == OK) {
+            this.roomManager.energyTransaction(priorEnergy);
         }
         
     // Transport is out of energy, go to link for more

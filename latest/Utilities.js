@@ -127,6 +127,20 @@ Utilities.scrub = function(thisId) {
     }
 }
 
+Utilities.log = function(priority, msg) {
+    critical = true
+    debug = false
+    info = true
+
+    if (priority == DEBUG && debug) {
+        console.log("DEBUG: " + msg);
+    } else if (priority == CRITICAL && critical) {
+        console.log("CRITICAL: " + msg);
+    } else if (priority == INFO && info) {
+        console.log("INFO: " + msg);
+    }
+}
+
 Utilities.transferAll = function(creep, target) {
     for(var resourceType in creep.carry) {
         creep.transfer(target, resourceType);
