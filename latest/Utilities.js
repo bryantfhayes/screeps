@@ -127,6 +127,12 @@ Utilities.scrub = function(thisId) {
     }
 }
 
+Utilities.transferAll = function(creep, target) {
+    for(var resourceType in creep.carry) {
+        creep.transfer(target, resourceType);
+    }
+}
+
 // Adds a subscriber to target RoomObject
 RoomObject.prototype.subscribe = function(target) {
     try {
@@ -164,8 +170,46 @@ RoomObject.prototype.subscribe = function(target) {
        
     } catch(err) {
         console.log(err);
-    }
-    
+    } 
+}
+
+RoomObject.prototype.subscribeById = function(id) {
+    try {
+
+        if (this.id == undefined || id == undefined) {
+            console.log("UNDEFINED!");
+            console.log(JSON.stringify(target));
+            console.log(JSON.stringify(this));
+            return
+        }
+
+        var targetToPath = ["Subscriptions", id, "subscribedTo"].join(".")
+        var targetByPath = ["Subscriptions", id, "subscribedBy"].join(".")
+        var thisToPath = ["Subscriptions", this.id, "subscribedTo"].join(".")
+        var thisByPath = ["Subscriptions", this.id, "subscribedBy"].join(".")
+
+        // Add this.id to target's subscribedBy field
+        var targetSubscribers = Utilities.load(targetByPath);
+        
+        if (targetSubscribers) {
+            targetSubscribers[this.id] = true;
+            Utilities.save(targetByPath, targetSubscribers);
+        } else {
+            Utilities.save(targetByPath, {[this.id] : true})
+        }
+        
+        // Add id to this objects SubscribedTo field
+        var thisSubscriptions = Utilities.load(thisToPath);
+        if (thisSubscriptions) {
+            thisSubscriptions[id] = true;
+            Utilities.save(thisToPath, thisSubscriptions);
+        } else {
+            Utilities.save(thisToPath, {[id] : true});
+        }
+       
+    } catch(err) {
+        console.log("subscribeById: " + err);
+    } 
 }
 
 // Removes all subscribedBy and subscribedTo links
@@ -196,7 +240,7 @@ RoomObject.prototype.unsubscribe = function(target) {
         }
 
     } catch(err) {
-        console.log(err)
+        console.log("unsubscribe " + err)
     }
 }
 
@@ -228,7 +272,11 @@ RoomObject.prototype.subscribersCount = function() {
 
 RoomObject.prototype.subscribersOfType = function(type) {
     try {
-        var idArr = Object.keys(this.subscribers()).filter(function(id){
+        var subscribers = this.subscribers();
+        if (subscribers == undefined) {
+            return 0;
+        }
+        var idArr = Object.keys(subscribers).filter(function(id){
             try {
                 if(Game.getObjectById(id).memory.role == type) {
                     return true;
@@ -239,9 +287,34 @@ RoomObject.prototype.subscribersOfType = function(type) {
                 return false;
             }
         });
+        if (idArr != undefined) {
+            return idArr.length;
+        } else {
+            return 0;
+        }
+    } catch(err) {
+        console.log("subscribers of type: " + err);
+        return 0;
+    }
+}
+
+Utilities.subscribersOfTypeForId = function(id, type) {
+    var subscribers = Utilities.load(["Subscriptions", id, "subscribedBy"].join('.'));
+    try {
+        var idArr = Object.keys(subscribers).filter(function(fid){
+            try {
+                if(Game.getObjectById(fid).memory.role == type) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } catch(err) {
+                return false;
+            }
+        });
         return idArr.length;
     } catch(err) {
-        console.log(err);
+        console.log("utilities: subscribersOfTypeForId: " + err);
         return 0;
     }
 }

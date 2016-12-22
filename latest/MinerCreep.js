@@ -7,7 +7,7 @@ var MinerCreep = function(creep, roomManager) {
 
 MinerCreep.prototype.init = function() {
 	this.save('role', 'MinerCreep');
-    this.mode = undefined;
+    this.mode = this.load('mode');
 }
 
 MinerCreep.prototype.determineMode = function() {
@@ -24,12 +24,27 @@ MinerCreep.prototype.determineMode = function() {
     }
 
     // SECOND: check to see if transport creep is subscribed to THIS creep
-    var subscribers = this.subscribersOfType("TransportCreep");
-    if (subscribers == undefined || subscribers > 0) {
+    var subscribers = this.creep.subscribersOfType("TransportCreep");
+    if (subscribers != undefined && subscribers > 0) {
         return CREEP_MODE_MINE_WITH_TRANSPORT;
     }
 
-    // THIRD: if no links or transports, work as a harvester
+    // THIRD: mine minerals if there is an extractor
+    var extractors = this.roomManager.room.find(FIND_STRUCTURES, {
+        filter: (structure) => {
+            return (structure.structureType == STRUCTURE_EXTRACTOR &&
+                    structure.subscribersOfType("MinerCreep") < 1)
+        }
+    })
+    console.log(JSON.stringify(extractors));
+    if (extractors != undefined && extractors.length > 0) {
+        var extractor = extractors[0];
+        this.creep.subscribe(extractor);
+        this.save("source", extractor.id);
+        return CREEP_MODE_MINE_MINERALS;
+    }
+
+    // FOURTH: if no links or transports, work as a harvester
     return CREEP_MODE_MINE_AS_HARVESTER;
 }
 
@@ -106,9 +121,27 @@ MinerCreep.prototype.mineWithLink = function() {
     }
 }
 
+MinerCreep.prototype.mineWithContainer = function() {
+    Utilities.exclaim(this.creep, "M.container");
+    var container = this.creep.pos.findClosestByRange(FIND_STRUCTURES, {
+        filter: (structure) => {
+            return (structure.structureType == STRUCTURE_CONTAINER);
+        }
+    })
+    if (container != undefined) {
+        this.creep.subscribe(container);
+        Utilities.transferAll(this.creep, container)
+        this.creep.moveTo(container);
+    }
+}
+
 MinerCreep.prototype.doAction = function() {
 
-    this.mode = this.determineMode();
+    if (this.mode == undefined || this.mode == CREEP_MODE_UNKNOWN) {
+        console.log(this.creep.name + " is looking for work!");
+        this.mode = this.determineMode();
+        this.save('mode', this.mode);
+    }
     
     // Creep isn't at full energy yet, mine!
     if (this.creep.carry.energy < this.creep.carryCapacity) {
@@ -125,9 +158,20 @@ MinerCreep.prototype.doAction = function() {
             case(CREEP_MODE_MINE_WITH_LINK):
                 this.mineWithLink();
                 break;
+            case(CREEP_MODE_MINE_MINERALS):
+                this.mineWithContainer();
+                break;
             default:
                 this.mineAsHarvester();
         }
+    }
+
+    // If no task, wipe memory
+    this.mode = this.load('mode');
+    if (this.mode == CREEP_MODE_UNKNOWN) {
+        this.save('source', undefined);
+        this.creep.scrub();
+        //console.log(this.creep.name + " lost his job!")
     }
 }
 

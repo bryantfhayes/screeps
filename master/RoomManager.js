@@ -97,11 +97,15 @@ RoomManager.prototype.populate = function() {
 };
 
 RoomManager.prototype.loadCreeps = function() {
-	//var creeps = Utilities.load(["Rooms", this.room.name, "creeps"].join('.'))
-	//var creeps = this.room.find(FIND_MY_CREEPS);
+	// Find creeps this room controls
 	var creeps = Game.creeps;
-	for(var n in creeps) {
-		var c = this.creepFactory.load(creeps[n]);
+	// var controlledCreeps = creeps.filter(function(c) {
+	// 	return (c.memory.srcRoom == this.room.name);
+	// });
+	var controlledCreeps = creeps;
+
+	for(var n in controlledCreeps) {
+		var c = this.creepFactory.load(controlledCreeps[n]);
 		if(c) {
 			this.creeps.push(c);
 		}
@@ -118,6 +122,108 @@ RoomManager.prototype.performTowerActions = function() {
 	for (var n in this.towers) {
 		this.towers[n].doAction()
 	}
+}
+
+RoomManager.prototype.performLinkActions = function() {
+	var fromLinks = this.room.find(FIND_MY_STRUCTURES, {
+		filter: (structure) => {
+			return (structure.structureType == STRUCTURE_LINK &&
+				    structure.subscribersOfType("MinerCreep") > 0);
+		}
+	});
+
+	var toLinks = this.room.find(FIND_MY_STRUCTURES, {
+		filter: (structure) => {
+			return (structure.structureType == STRUCTURE_LINK &&
+				    structure.subscribersOfType("MinerCreep") < 1);
+		}
+	});
+
+	if (toLinks == undefined || toLinks.length < 1) {
+		console.log("WARNING: no to links!")
+		return false
+	}
+
+	for (var n in fromLinks) {
+		if (fromLinks[n].energy >= fromLinks[n].energyCapacity * 0.25) {
+			//console.log("SUCCESS: transfer from " + fromLinks[n].id)
+			fromLinks[n].transferEnergy(toLinks[0]);
+		}
+	}
+}
+
+RoomManager.prototype.getPrefferedEnergyPickUp = function(ignore) {
+	if (ignore == undefined) {
+		ignore = {}
+		ignore.storage = false
+		ignore.spawn = false
+	}
+	// FIRST: check for a storage unit
+	var storages = this.room.find(FIND_MY_STRUCTURES, {
+		filter: (structure) => {
+			return (structure.structureType == STRUCTURE_STORAGE &&
+				    structure.store[RESOURCE_ENERGY] > 0);
+		}
+	});
+	if ((storages != undefined && storages.length > 0) && (ignore.storage != true)) {
+		return storages;
+	}
+
+	// SECOND: if no storages, try non-full spawn or extensions
+	var spawns_and_extensions = this.room.find(FIND_MY_STRUCTURES, {
+		filter: (structure) => {
+			return(((structure.structureType == STRUCTURE_SPAWN) ||
+				    (structure.structureType == STRUCTURE_EXTENSION)) &&
+					(structure.energy > 0));
+		}
+	});
+	if ((spawns_and_extensions != undefined && spawns_and_extensions.length > 0) && (ignore.spawn != true)) {
+		return spawns_and_extensions;
+	}
+
+	// THIRD: try collecting from links in the room that have no miners subscribed
+	var toLinks = this.room.find(FIND_MY_STRUCTURES, {
+		filter: (structure) => {
+			return (structure.structureType == STRUCTURE_LINK &&
+				    structure.subscribersOfType("MinerCreep") < 1);
+		}
+	});
+
+	if (toLinks != undefined && toLinks.length > 0) {
+		return toLinks;
+	}
+
+	// GIVE UP!
+	return undefined;
+}
+
+// returns the object that energy should be brought to
+// based on structures available in the current room.
+RoomManager.prototype.getPrefferedEnergyDropOff = function() {
+	// FIRST: check for a storage unit
+	var storages = this.room.find(FIND_MY_STRUCTURES, {
+		filter: (structures) => {
+			return (structures.structureType == STRUCTURE_STORAGE);
+		}
+	});
+	if (storages != undefined && storages.length > 0) {
+		return storages;
+	}
+
+	// SECOND: if no storages, try non-full spawn or extensions
+	var spawns_and_extensions = this.room.find(FIND_MY_STRUCTURES, {
+		filter: (structures) => {
+			return(((structures.structureType == STRUCTURE_SPAWN) ||
+				    (structures.structureType == STRUCTURE_EXTENSION)) &&
+					(structures.energy < structures.energyCapacity));
+		}
+	});
+	if (spawns_and_extensions != undefined && spawns_and_extensions.length > 0) {
+		return spawns_and_extensions;
+	}
+
+	// THIRD: nothing is available
+	return undefined;
 }
 
 module.exports = RoomManager;

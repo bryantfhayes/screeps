@@ -1,51 +1,44 @@
-var kTransportsPerMiner = 2;
-
 function Population(room) {
 	this.room = room;
 	this.population = 0;
+	this.creeps = [];
 	this.populationLevelMultiplier = 8;
-
-	this.numberOfTowers = this.room.find(FIND_MY_STRUCTURES, {
-		filter: (structure) => { 
-			return(structure.structureType == STRUCTURE_TOWER);
-		}
-	}).length;
 
 	this.typeDistribution = {
 		SpawnMaintenanceCreep: {
 			total: 0,
 			currentPercentage: 0,
-			max: 2,
+			max: 0,
 			minExtensions: 0
 		},
 		MinerCreep: {
 			total: 0,
 			currentPercentage: 0,
-			max: this.room.find(FIND_SOURCES).length,
+			max: this.room.find(FIND_SOURCES).length, //+ this.room.find(FIND_STRUCTURES, {filter:(structure)=>{return(structure.structureType == STRUCTURE_EXTRACTOR)}}).length,
 			minExtensions: 0
 		},
 		TransportCreep: {
 			total: 0,
 			currentPercentage: 0,
-			max: this.room.find(FIND_SOURCES).length * kTransportsPerMiner,
+			max: 3,
 			minExtensions: 0
 		},
 		ContainerMaintenanceCreep: {
 			total: 0,
 			currentPercentage: 0,
-			max: 2,
+			max: 0,
 			minExtensions: 0
 		},
 		UpgraderCreep: {
 			total: 0,
 			currentPercentage: 0,
-			max: 3,
+			max: 1,
 			minExtensions: 0
 		},
 		MaintenanceCreep: {
 			total: 0,
 			currentPercentage: 0,
-			max: 1,
+			max: 0,
 			minExtensions: 0
 		}, 
 		BuilderCreep: {
@@ -63,13 +56,17 @@ function Population(room) {
 		TowerMasterCreep: {
 			total: 0,
 			currentPercentage: 0,
-			max: 1,
+			max: 0,
 			minExtensions: 0
 		}
 	};
 
 	try{
-		this.creeps = this.room.find(FIND_MY_CREEPS);
+		this.creeps = this.room.find(FIND_MY_CREEPS, {
+			filter: (creep) => {
+				return (creep.memory.srcRoom == this.room.name);
+			}
+		});
 		for(var i = 0; i < this.creeps.length; i++) {
 			var creepType = this.creeps[i].memory.role;
 			this.typeDistribution[creepType].total++;

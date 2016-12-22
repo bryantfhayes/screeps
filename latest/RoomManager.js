@@ -16,7 +16,7 @@ function RoomManager(room, gameManager) {
 		}
 	}
 	
-	this.population = new Population(this.room);
+	this.population = new Population(this);
 	this.creepFactory = new CreepFactory(this);
 	
 	// Locate all room towers
@@ -82,16 +82,31 @@ RoomManager.prototype.load = function(key) {
 	return Utilities.load(['Rooms', this.room.name, key].join('.'));
 };
 
+RoomManager.prototype.getAvailableSpawn = function() {
+	var spawns = this.room.find(FIND_MY_STRUCTURES, {
+		filter: (structure) => {
+			return (structure.structureType == STRUCTURE_SPAWN &&
+				    structure.spawning == null)
+		}
+	})
+	if (spawns != undefined && spawns.length > 0) {
+		return spawns[0];
+	} else {
+		return undefined;
+	}
+}
+
 RoomManager.prototype.populate = function() {
-	for (var n in Game.spawns) {
-		var spawn = Game.spawns[n];
-		var types = this.population.getTypes();
-		for (var i = 0; i < types.length; i++) {
-			var ctype = this.population.getType(types[i]);
-			if (ctype.total < ctype.max) {
-				this.creepFactory.new(types[i], spawn);
-				break;
-			}
+	var types = this.population.getTypes();
+	for (var i = 0; i < types.length; i++) {
+		var spawn = this.getAvailableSpawn();
+		if (spawn == undefined) {
+			return
+		}
+		var ctype = this.population.getType(types[i]);
+		if (ctype.total < ctype.max) {
+			this.creepFactory.new(types[i], spawn);
+			break;
 		}
 	}
 };
@@ -99,17 +114,19 @@ RoomManager.prototype.populate = function() {
 RoomManager.prototype.loadCreeps = function() {
 	// Find creeps this room controls
 	var creeps = Game.creeps;
-	// var controlledCreeps = creeps.filter(function(c) {
-	// 	return (c.memory.srcRoom == this.room.name);
-	// });
-	var controlledCreeps = creeps;
+	var thisRoomName = this.room.name
+	var controlledCreeps = Object.keys(creeps).filter(function(c) {
+	 	return (Game.creeps[c].memory.srcRoom == thisRoomName);
+	})
 
 	for(var n in controlledCreeps) {
-		var c = this.creepFactory.load(controlledCreeps[n]);
-		if(c) {
-			this.creeps.push(c);
+		var loadedCreep = this.creepFactory.load(Game.creeps[controlledCreeps[n]]);
+		if(loadedCreep) {
+			this.creeps.push(loadedCreep);
 		}
 	}
+
+	this.population.updatePopulation();
 };
 
 RoomManager.prototype.performCreepActions = function() {
@@ -224,6 +241,34 @@ RoomManager.prototype.getPrefferedEnergyDropOff = function() {
 
 	// THIRD: nothing is available
 	return undefined;
+}
+
+RoomManager.prototype.getRemoteRooms = function() {
+	var rooms = {
+		W8N4: {
+			sources: [
+				"f1cf07722e9627a",
+				"c98d07722e910b6"
+			]
+		}
+	}
+
+	return rooms;
+}
+
+RoomManager.prototype.getAvailableRemoteSources = function() {
+	var remotes = this.getRemoteRooms();
+	for (var n in remotes) {
+		var sources = remotes[n].sources;
+		for (var i in sources) {
+			var source = sources[i]
+			if (Utilities.subscribersOfTypeForId(source, "RemoteMinerCreep") < 1) {
+				return {'room': n, 'source': source}
+			}
+		}
+	}
+
+	return undefined
 }
 
 module.exports = RoomManager;

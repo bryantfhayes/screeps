@@ -1,32 +1,21 @@
-function Population(room) {
-	this.room = room;
+function Population(roomManager) {
+	this.roomManager = roomManager
+	this.room = roomManager.room;
 	this.population = 0;
 	this.creeps = [];
 	this.populationLevelMultiplier = 8;
 
 	this.typeDistribution = {
-		SpawnMaintenanceCreep: {
-			total: 0,
-			currentPercentage: 0,
-			max: 0,
-			minExtensions: 0
-		},
 		MinerCreep: {
 			total: 0,
 			currentPercentage: 0,
-			max: this.room.find(FIND_SOURCES).length,
+			max: this.room.find(FIND_SOURCES).length, //+ this.room.find(FIND_STRUCTURES, {filter:(structure)=>{return(structure.structureType == STRUCTURE_EXTRACTOR)}}).length,
 			minExtensions: 0
 		},
 		TransportCreep: {
 			total: 0,
 			currentPercentage: 0,
 			max: 4,
-			minExtensions: 0
-		},
-		ContainerMaintenanceCreep: {
-			total: 0,
-			currentPercentage: 0,
-			max: 0,
 			minExtensions: 0
 		},
 		UpgraderCreep: {
@@ -38,13 +27,13 @@ function Population(room) {
 		MaintenanceCreep: {
 			total: 0,
 			currentPercentage: 0,
-			max: 1,
+			max: 0,
 			minExtensions: 0
 		}, 
 		BuilderCreep: {
 			total: 0,
 			currentPercentage: 0,
-			max: 2,
+			max: 0,
 			minExtensions: 0
 		},
 		SoldierCreep: {
@@ -53,32 +42,13 @@ function Population(room) {
 			max: 0,
 			minExtensions: 0
 		},
-		TowerMasterCreep: {
+		RemoteMinerCreep: {
 			total: 0,
 			currentPercentage: 0,
-			max: 0,
+			max: 2,
 			minExtensions: 0
 		}
 	};
-
-	try{
-		this.creeps = this.room.find(FIND_MY_CREEPS, {
-			filter: (creep) => {
-				return (creep.memory.srcRoom == this.room.name);
-			}
-		});
-		for(var i = 0; i < this.creeps.length; i++) {
-			var creepType = this.creeps[i].memory.role;
-			this.typeDistribution[creepType].total++;
-		}
-
-		for(var name in this.typeDistribution) {
-			var curr = this.typeDistribution[name];
-			this.typeDistribution[name].currentPercentage = curr.total / this.getMaxPopulation();
-		}
-	} catch(err) {
-		console.log("LINE #58 in Population.js: " + err);
-	}
 };
 
 Population.prototype.goalsMet = function() {
@@ -105,7 +75,7 @@ Population.prototype.getTypes = function() {
 };
 
 Population.prototype.getTotalPopulation = function() {
-	return this.creeps.length;
+	return this.roomManager.creeps.length;
 };
 
 Population.prototype.getMaxPopulation = function() {
@@ -115,6 +85,22 @@ Population.prototype.getMaxPopulation = function() {
 	}
 	return population;
 };
+
+Population.prototype.updatePopulation = function() {
+	try{
+		for(var n in this.roomManager.creeps) {
+			var creepType = this.roomManager.creeps[n].creep.memory.role;
+			this.typeDistribution[creepType].total++;
+		}
+
+		for(var name in this.typeDistribution) {
+			var curr = this.typeDistribution[name];
+			this.typeDistribution[name].currentPercentage = curr.total / this.getMaxPopulation();
+		}
+	} catch(err) {
+		console.log("LINE #58 in Population.js: " + err);
+	}
+}
 
 module.exports = Population;
 

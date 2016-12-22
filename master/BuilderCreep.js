@@ -20,12 +20,7 @@ BuilderCreep.prototype.work = function() {
 }
 
 BuilderCreep.prototype.getEnergy = function() {
-    var sources = this.roomManager.room.find(FIND_STRUCTURES, {
-            filter: (structure) => {
-                return ((structure.structureType == STRUCTURE_STORAGE) && (structure.store[RESOURCE_ENERGY] > 0));
-            }
-    });
-
+    var sources = this.roomManager.getPrefferedEnergyPickUp()
 
     // Save structure if found, otherwise go on break.
     if (sources && sources.length > 0) {

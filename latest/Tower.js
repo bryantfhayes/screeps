@@ -17,7 +17,8 @@ Tower.prototype.doAction = function() {
         var closestDamagedStructure = this.tower.pos.findClosestByRange(FIND_STRUCTURES, {
             filter: (structure) => {
                 return(((structure.structureType == STRUCTURE_ROAD) && (structure.hits < structure.hitsMax*0.75)) ||
-                         ((structure.structureType == STRUCTURE_RAMPART) && (structure.hits < 100000)) );
+                         ((structure.structureType == STRUCTURE_RAMPART) && (structure.hits < 100000)) ||
+                         ((structure.structureType == STRUCTURE_CONTAINER) && (structure.hits < 100000)));
             }
         });
         //var storageCs = Game.getObjectById("f00bb59e64ddabf");

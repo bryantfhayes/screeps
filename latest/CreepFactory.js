@@ -8,9 +8,7 @@ var UpgraderCreep = require('UpgraderCreep');
 var MaintenanceCreep = require('MaintenanceCreep');
 var SoldierCreep = require('SoldierCreep');
 var MinerCreep = require('MinerCreep');
-var TowerMasterCreep = require('TowerMasterCreep');
-var SpawnMaintenanceCreep = require('SpawnMaintenanceCreep');
-var ContainerMaintenanceCreep = require('ContainerMaintenanceCreep');
+var RemoteMinerCreep = require('RemoteMinerCreep');
 
 var BasicCreep = require('BasicCreep');
 
@@ -45,14 +43,8 @@ CreepFactory.prototype.load = function(creep) {
 		case 'MinerCreep':
 			loadedCreep = new MinerCreep(creep, this.roomManager);
 			break;
-		case 'TowerMasterCreep':
-			loadedCreep = new TowerMasterCreep(creep, this.roomManager);
-			break;
-		case 'SpawnMaintenanceCreep':
-			loadedCreep = new SpawnMaintenanceCreep(creep, this.roomManager);
-			break;
-		case 'ContainerMaintenanceCreep':
-			loadedCreep = new ContainerMaintenanceCreep(creep, this.roomManager);
+		case 'RemoteMinerCreep':
+			loadedCreep = new RemoteMinerCreep(creep, this.roomManager);
 			break;
 	}
 
@@ -108,9 +100,6 @@ CreepFactory.prototype.new = function(type, spawn) {
 
 		break;
 		case 'TransportCreep':
-		case 'SpawnMaintenanceCreep':
-		case 'ContainerMaintenanceCreep':
-		case 'TowerMasterCreep':
 			if(level <= 1) {
 				parts = [MOVE, CARRY];
 			} else
@@ -181,6 +170,22 @@ CreepFactory.prototype.new = function(type, spawn) {
 				parts = [CARRY, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY];
 			}
 		break;
+		case 'RemoteMinerCreep':
+			if(level <= 1) {
+				parts = [CARRY, MOVE, WORK];
+			} else
+			if(level <= 2) {
+				parts = [CARRY, MOVE, MOVE, WORK, WORK];
+			} else
+			if(level <= 3) {
+				parts = [CARRY, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK];
+			} else
+			if(level <= 4) {
+				parts = [CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY];
+			} else
+			if(level <= 5) {
+				parts = [CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY];
+			}
 		
 	}
 

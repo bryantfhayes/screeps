@@ -92,19 +92,28 @@ TransportCreep.prototype.determineMode = function() {
     var containers = this.roomManager.room.find(FIND_STRUCTURES, {
         filter: (structure) => {
             return (structure.structureType == STRUCTURE_CONTAINER &&
-                    structure.store[RESOURCE_ENERGY] < structure.storeCapacity);
+                    structure.store[RESOURCE_ENERGY] < structure.storeCapacity &&
+                    structure.subscribersOfType("MinerCreep") < 1);
         }
     })
 
-    if (containers == undefined || containers.length < 1) {
-        return CREEP_MODE_UNKNOWN;
-    }
-
-    if (controllers != undefined && controllers.length > 0) {
+    if (containers != undefined && containers.length > 0 && controllers != undefined && controllers.length > 0) {
         var controller = controllers[0];
         this.creep.subscribe(controller);
         this.save('tasks.targetController', controller.id);
         return CREEP_MODE_TRANSPORT_STORAGE_TO_CONTAINERS;
+    }
+
+    // SIXTH: Look for RemoteMiners that don't have a transporter
+    var remoteMiners = this.roomManager.creeps.filter(function(c) {
+        return (c.creep.memory.role == "RemoteMinerCreep" &&
+                c.creep.subscribersOfType("TransportCreep") < 1);
+    })
+    if (remoteMiners != undefined && remoteMiners.length > 0) {
+        var remoteMiner = remoteMiners[0];
+        this.creep.subscribe(remoteMiner.creep);
+        this.save("tasks.targetRemoteMiner", remoteMiner.creep.id);
+        return CREEP_MODE_TRANSPORT_REMOTE_MINER_TO_STORAGE;
     }
 
     // No tasks available right now
@@ -137,6 +146,49 @@ TransportCreep.prototype.transportMinerToStorage = function() {
         // Load current miner, else find new task
         if (this.load("tasks.targetMiner") != undefined) {
             source = Game.getObjectById(this.load("tasks.targetMiner"));
+        } 
+
+        // miner not found
+        if (source == undefined) {
+            this.save('mode', CREEP_MODE_UNKNOWN);
+            return;
+        }
+
+        var energy = source.pos.findInRange(FIND_DROPPED_ENERGY, 2);
+        if (energy.length > 0) {
+            if(this.creep.pickup(energy[0]) == ERR_NOT_IN_RANGE) {
+                this.creep.moveTo(energy[0]);
+            }
+        } else {
+            this.creep.moveTo(source);
+        }
+    }
+}
+
+TransportCreep.prototype.transportRemoteMinerToStorage = function() {
+    Utilities.exclaim(this.creep, "T.remote");
+    if(this.load('fill')) {
+        var target = undefined;
+        var targets = this.roomManager.getPrefferedEnergyDropOff();
+        
+        if (targets != undefined && targets.length > 0) {
+            target = targets[0];
+        }
+
+        if (target == undefined) {
+            ////console.log(this.creep.name + " doesn't have a place to fill");
+            return;
+        }
+
+        if(this.creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+            this.creep.moveTo(target);
+        }
+    } else {
+        var source = undefined;
+
+        // Load current miner, else find new task
+        if (this.load("tasks.targetRemoteMiner") != undefined) {
+            source = Game.getObjectById(this.load("tasks.targetRemoteMiner"));
         } 
 
         // miner not found
@@ -266,7 +318,8 @@ TransportCreep.prototype.transportStorageToContainers = function() {
             filter: (structures) => {
                 return ((structures.structureType == STRUCTURE_CONTAINER) && 
                         structures.store[RESOURCE_ENERGY] < structures.storeCapacity &&
-                        structures.room.name == this.creep.memory.srcRoom);
+                        structures.room.name == this.creep.memory.srcRoom &&
+                        structure.subscribersOfType("MinerCreep") < 1);
             }
         });
 
@@ -374,6 +427,9 @@ TransportCreep.prototype.doAction = function() {
             break;
         case(CREEP_MODE_TRANSPORT_LINK_TO_STORAGE):
             this.transportLinkToStorage();
+            break;
+        case(CREEP_MODE_TRANSPORT_REMOTE_MINER_TO_STORAGE):
+            this.transportRemoteMinerToStorage();
             break;
         default:
             Utilities.exclaim(this.creep, "T.none");

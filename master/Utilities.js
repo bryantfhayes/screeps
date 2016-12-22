@@ -127,6 +127,12 @@ Utilities.scrub = function(thisId) {
     }
 }
 
+Utilities.transferAll = function(creep, target) {
+    for(var resourceType in creep.carry) {
+        creep.transfer(target, resourceType);
+    }
+}
+
 // Adds a subscriber to target RoomObject
 RoomObject.prototype.subscribe = function(target) {
     try {
@@ -243,6 +249,12 @@ RoomObject.prototype.subscribersOfType = function(type) {
     } catch(err) {
         console.log(err);
         return 0;
+    }
+}
+
+Utilities.exclaim = function(creep, msg) {
+    if (Game.time % 10 == 0) {
+        creep.say(msg);
     }
 }
 
