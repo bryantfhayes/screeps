@@ -8,7 +8,11 @@ function RoomManager(room, gameManager) {
 	this.gameManager = gameManager;
 	this.creeps = [];
 	this.structure = [];
-	this.level = 1
+	this.level = 0
+
+	this.jobBoard = undefined
+	this.population = undefined
+	this.creepFactory = undefined
 
 	// Set spawn for room
 	for (var n in Game.spawns) {
@@ -17,12 +21,100 @@ function RoomManager(room, gameManager) {
 		}
 	}
 
+	// Initialize everything in this room using memory
 	this.init();
+
+	// Start figuring out what jobs need to get done.
+	this.planCreepProduction()
+	this.planHarvestResources()
+	this.planRoads()
 
 	// Start assigning jobs to all the important things in the room
 	this.processSpawn()
+	this.processSources()
 	this.processCreeps()
+	this.processRoads()
 };
+
+RoomManager.prototype.processRoads = function() {
+	job = this.jobBoard.getAvailableJobOfType(this.jobBoard.jobTypes.BUILD_ROAD);
+	if (job != undefined) {
+		this.jobBoard.startJobByHash(job.hash)
+		var path = PathFinder.search(job.args.pos1, job.args.pos2);
+		for (var j = 0; j < path.path.length; j++) {
+			this.room.createConstructionSite(path.path[j].x, path.path[j].y, STRUCTURE_ROAD);
+		}
+
+		// Road construction jobs are never deleted, so that way they won't attempt to re-build them again
+	}
+}
+
+RoomManager.prototype.planRoads = function() {
+	// Need to add a job for making a road to all major structures
+	var structures = this.room.find(FIND_STRUCTURES, {
+            filter: (structure) => {
+                return (true);
+            }
+    });
+
+	// Also build roads between SOURCES and CONTROLLER
+    var sources = this.room.find(FIND_SOURCES);
+	var targets = structures.concat(sources);
+
+    for (var i in targets) {
+    	for (var j in targets) {
+    		if (i == j) {
+    			continue;
+    		}
+    		this.jobBoard.addJob(this.jobBoard.jobTypes.BUILD_ROAD, 5, {pos1: targets[i].pos, pos2: targets[j].pos})
+    	}
+    }
+};
+
+RoomManager.prototype.processSources = function() {
+	// To complete this job, a miner needs to be found and subscribed to
+	// the specified source
+	job = this.jobBoard.getAvailableJobOfType(this.jobBoard.jobTypes.HARVEST_REQUEST);
+	if (job != undefined) {
+		availableCreeps = this.room.find(FIND_MY_CREEPS, {
+			filter: (creep) => {
+				// Find free miners who aren't subscribed to any other source
+				return ((creep.memory.role == "MinerCreep") && (creep.subscriptionsCount() == 0))
+			}
+		});
+
+		if (availableCreeps.length > 0) {
+			source = Game.getObjectById(job.args.sourceId);
+			availableCreeps[0].subscribe(source);
+			this.jobBoard.removeJobByHash(job.hash)
+		}
+	}
+};
+
+RoomManager.prototype.planHarvestResources = function() {
+	// Iterate of each available resource
+	resources = this.room.find(FIND_SOURCES)
+	for (var n in resources) {
+		resource = resources[n]
+		subscribers = resource.subscribersOfType("MinerCreep")
+		if (subscribers < 3) {
+			this.jobBoard.addJob(this.jobBoard.jobTypes.HARVEST_REQUEST, 80, {sourceId: resource.id})
+		}
+	}
+};
+
+RoomManager.prototype.planCreepProduction = function() {
+	distribution = this.population.getCreepDistribution(this.level)
+	for (var type in distribution) {
+		// For each type of creep, see if we need to make a new job
+		count = Utilities.getCreepsOfType(this.room, type)
+		creepInfo = distribution[type]
+		if (count.length < creepInfo.total) {
+			// Make a job request
+			this.jobBoard.addJob(this.jobBoard.jobTypes.BUILD_CREEP, creepInfo.priority, {type: creepInfo.name, level: creepInfo.level})
+		}
+	}
+}
 
 RoomManager.prototype.processCreeps = function() {
 	for (var n in this.creeps) {
@@ -34,9 +126,9 @@ RoomManager.prototype.processSpawn = function() {
 	// Check if this spawn has a job already
 	job = this.jobBoard.getJobForAssignee(this.spawn.id)
 	if (job) {
-		if (job.started) {
+		if (job.started !== false) {
 			// Job is already started, check to see if it is done
-			if (this.spawn.id.spawning != null) {
+			if (this.spawn.spawning != null) {
 				// We are working on it now. So just wait.
 			} else {
 				// Spawning must be done, mark the job as done.
@@ -53,7 +145,6 @@ RoomManager.prototype.processSpawn = function() {
 		// Otherwise, we don't even have a job yet, so lets 
 		// call dibs on one.
 		job = this.jobBoard.getAvailableJobOfType(this.jobBoard.jobTypes.BUILD_CREEP);
-		console.log(JSON.stringify(job))
 		if (job != undefined) {
 			// Sign up for this task
 			this.jobBoard.assignJobByHash(job.hash, this.spawn.id)
@@ -75,8 +166,6 @@ RoomManager.prototype.init = function() {
 	this.creepFactory = new CreepFactory(this);
 
 	this.loadCreeps()
-
-	this.jobBoard.addJob(this.jobBoard.jobTypes.BUILD_CREEP, 1, {type: 'MinerCreep', level: this.level})
 }
 
 /**

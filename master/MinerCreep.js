@@ -18,16 +18,24 @@ MinerCreep.prototype.doAction = function() {
         }
 
         if (source == undefined) {
-            sources = this.roomManager.room.find(FIND_SOURCES, {
-                filter: (source) => {
-                    return (true);
+            if (this.creep.subscriptions() != undefined) {
+                sources = Object.keys(this.creep.subscriptions()).filter(function(id){
+                try {
+                    if(Game.getObjectById(id).energy !== undefined) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                } catch(err) {
+                    return false;
                 }
-            });
+                });
+            }
         }
 
         if ((sources.length > 0) && (source == undefined)) {
             source = sources[0];
-            this.remember("source", source.id);
+            this.remember("source", source);
         }
 
         // Save structure if found, otherwise go on break.

@@ -5,9 +5,11 @@ function Population(room, level) {
 
 	this.creepDistribution = {
 		0: {
-			HarvestCreep: {
-				total: 2,
-				level: 1
+			MinerCreep: {
+				name: "MinerCreep",
+				total: 6,
+				level: 1,
+				priority: 100
 			}
 		}
 	};

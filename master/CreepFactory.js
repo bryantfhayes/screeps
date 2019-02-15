@@ -72,12 +72,14 @@ CreepFactory.prototype.new = function(type, spawn) {
 		}
 	);
 	if(canBuild !== OK) {
-		console.log("Spawner can't build that right now")
+		//console.log("Spawner can't build that right now")
 		return false;
 	}
 
 	console.log('Spawn LV ' + level + ' ' + type);
 	spawn.createCreep(parts, undefined, {role: type});
+
+	return true
 }
 
 module.exports = CreepFactory;

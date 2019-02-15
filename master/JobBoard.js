@@ -3,7 +3,9 @@ var Utilities = require('Utilities')
 function JobBoard(room) {
 	this.room = room
 	this.jobTypes = {
-		BUILD_CREEP: 0
+		BUILD_CREEP: "Build a creep",
+		HARVEST_REQUEST: "Miners requested at source",
+		BUILD_ROAD: "Build a road"
 	}
 	this.jobs = {};
 
@@ -30,9 +32,9 @@ JobBoard.prototype.addJob = function(jobtype, jobpriority, jobargs) {
 
 	// Add job to the list if it isn't already there
 	if (hash in this.jobs) {
-		console.log("That job is already on the list!")
+		
 	} else {
-		console.log("Made a new job!")
+		console.log("ADDED JOB - " + JSON.stringify(job))
 		job.hash = hash
 		job.started = false
 		job.assignee = undefined
@@ -54,6 +56,8 @@ JobBoard.prototype.removeJob = function(jobtype, jobpriority, jobargs) {
 	json = JSON.stringify(job)
 	hash = Utilities.hashString(json)
 
+	console.log("REMOVE JOB - " + JSON.stringify(job))
+
 	self.removeJobByHash(hash)
 };
 
@@ -64,11 +68,11 @@ JobBoard.prototype.startJobByHash = function(hash) {
 
 JobBoard.prototype.assignJobByHash = function(hash, id) {
 	if (hash in this.jobs) {
-		console.log("Assigning job to: " + id + " for job " + hash)
+		//console.log("Assigning job to: " + id + " for job " + hash)
 		this.jobs[hash].assignee = id
 		Utilities.save("JobBoard", this.jobs);
 	} else {
-		console.log("Attempting to assign to unknown job: " + hash)
+		//console.log("Attempting to assign to unknown job: " + hash)
 	}
 	
 }
@@ -87,7 +91,7 @@ JobBoard.prototype.getJobForAssignee = function(assignee) {
 JobBoard.prototype.removeJobByHash = function(hash) {
 	// Add job to the list if it isn't already there
 	if (hash in this.jobs) {
-		console.log("Found requested job, deleting it!")
+		console.log("FINISHED JOB - " + JSON.stringify(this.jobs[hash]))
 		delete this.jobs[hash]
 	} else {
 		console.log("Job not found, cannot delete!")
@@ -104,9 +108,7 @@ JobBoard.prototype.getAvailableJobOfType = function(type) {
 	selectedJob = undefined
 	for (var hash in this.jobs) {
 		job = this.jobs[hash]
-		console.log(type)
-		console.log(JSON.stringify(job))
-		if (job.type == type && job.assignee == undefined) {
+		if (job.type == type && job.assignee == undefined && job.started !== true) {
 			// if no other candidate, return this one, otherwise compare priority
 			if (selectedJob == undefined) {
 				selectedJob = job
