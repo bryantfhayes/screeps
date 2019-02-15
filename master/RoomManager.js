@@ -1,13 +1,14 @@
+var Population = require('Population')
+var JobBoard = require('JobBoard')
 var CreepFactory = require('CreepFactory');
-var Population = require('Population');
 var Utilities = require('Utilities');
-var Tower = require('Tower');
 
 function RoomManager(room, gameManager) {
 	this.room = room;
 	this.gameManager = gameManager;
 	this.creeps = [];
 	this.structure = [];
+	this.level = 1
 
 	// Set spawn for room
 	for (var n in Game.spawns) {
@@ -15,215 +16,89 @@ function RoomManager(room, gameManager) {
 			this.spawn = Game.spawns[n];
 		}
 	}
-	
-	this.population = new Population(this.room);
-	this.creepFactory = new CreepFactory(this);
-	
-	// Locate all room towers
-	this.towers = [];
-	var towerArr = this.room.find(FIND_MY_STRUCTURES, {
-    	filter: (structure) => { 
-        	return(structure.structureType == STRUCTURE_TOWER);
-        }
-    });
-
-    for (var n in towerArr) {
-    	var tower = new Tower(towerArr[n], this);
-    	this.towers.push(tower)
-    }
-
-    // Get room storage
-    var storages = this.room.find(FIND_MY_STRUCTURES, {
-    	filter: (structure) => {
-    		return(structure.structureType == STRUCTURE_STORAGE);
-    	}
-    });
-    this.storage = undefined;
-    if(storages.length > 0) {
-    	this.storage = storages[0];
-    }
 
 	this.init();
+
+	// Start assigning jobs to all the important things in the room
+	this.processSpawn()
+	this.processCreeps()
 };
 
-RoomManager.prototype.init = function() {
-	if (this.load('roadsBuilt') != true) {
-		console.log("build roads!");
-
-		var structures = this.room.find(FIND_STRUCTURES, {
-                filter: (structure) => {
-                    return (structure.structureType == STRUCTURE_CONTROLLER ||
-                            structure.structureType == STRUCTURE_TOWER);
-                }
-        });
-
-        var sources = this.room.find(FIND_SOURCES);
-
-        var targets = structures.concat(sources).concat(this.room.controller);
-
-		for (var i = 0; i < targets.length; i++) {
-			var path = this.room.findPath(this.spawn.pos, targets[i].pos);
-			for (var j = 0; j < path.length; j++) {
-				this.room.createConstructionSite(path[j].x, path[j].y,STRUCTURE_ROAD);
-				this.room.createConstructionSite(path[j].x, path[j].y-1,STRUCTURE_ROAD);
-				this.room.createConstructionSite(path[j].x, path[j].y+1,STRUCTURE_ROAD);
-			}
-		}
-		
-		this.save('roadsBuilt', true);
-	}
-}
-
-RoomManager.prototype.save = function(key, value) {
-	Utilities.save(['Rooms', this.room.name, key].join('.'), value);
-};
-
-RoomManager.prototype.load = function(key) {
-	return Utilities.load(['Rooms', this.room.name, key].join('.'));
-};
-
-RoomManager.prototype.populate = function() {
-	for (var n in Game.spawns) {
-		var spawn = Game.spawns[n];
-		var types = this.population.getTypes();
-		for (var i = 0; i < types.length; i++) {
-			var ctype = this.population.getType(types[i]);
-			if (ctype.total < ctype.max) {
-				this.creepFactory.new(types[i], spawn);
-				break;
-			}
-		}
-	}
-};
-
-RoomManager.prototype.loadCreeps = function() {
-	// Find creeps this room controls
-	var creeps = Game.creeps;
-	// var controlledCreeps = creeps.filter(function(c) {
-	// 	return (c.memory.srcRoom == this.room.name);
-	// });
-	var controlledCreeps = creeps;
-
-	for(var n in controlledCreeps) {
-		var c = this.creepFactory.load(controlledCreeps[n]);
-		if(c) {
-			this.creeps.push(c);
-		}
-	}
-};
-
-RoomManager.prototype.performCreepActions = function() {
+RoomManager.prototype.processCreeps = function() {
 	for (var n in this.creeps) {
 		this.creeps[n].doAction()
 	}
 }
 
-RoomManager.prototype.performTowerActions = function() {
-	for (var n in this.towers) {
-		this.towers[n].doAction()
-	}
-}
-
-RoomManager.prototype.performLinkActions = function() {
-	var fromLinks = this.room.find(FIND_MY_STRUCTURES, {
-		filter: (structure) => {
-			return (structure.structureType == STRUCTURE_LINK &&
-				    structure.subscribersOfType("MinerCreep") > 0);
+RoomManager.prototype.processSpawn = function() {
+	// Check if this spawn has a job already
+	job = this.jobBoard.getJobForAssignee(this.spawn.id)
+	if (job) {
+		if (job.started) {
+			// Job is already started, check to see if it is done
+			if (this.spawn.id.spawning != null) {
+				// We are working on it now. So just wait.
+			} else {
+				// Spawning must be done, mark the job as done.
+				this.jobBoard.removeJobByHash(job.hash)
+			}
+		} else {
+			// Start the assigned job
+			status = this.creepFactory.new(job.args.type, this.spawn)
+			if (status) {
+				this.jobBoard.startJobByHash(job.hash)
+			}
 		}
-	});
-
-	var toLinks = this.room.find(FIND_MY_STRUCTURES, {
-		filter: (structure) => {
-			return (structure.structureType == STRUCTURE_LINK &&
-				    structure.subscribersOfType("MinerCreep") < 1);
-		}
-	});
-
-	if (toLinks == undefined || toLinks.length < 1) {
-		console.log("WARNING: no to links!")
-		return false
-	}
-
-	for (var n in fromLinks) {
-		if (fromLinks[n].energy >= fromLinks[n].energyCapacity * 0.25) {
-			//console.log("SUCCESS: transfer from " + fromLinks[n].id)
-			fromLinks[n].transferEnergy(toLinks[0]);
+	} else {
+		// Otherwise, we don't even have a job yet, so lets 
+		// call dibs on one.
+		job = this.jobBoard.getAvailableJobOfType(this.jobBoard.jobTypes.BUILD_CREEP);
+		console.log(JSON.stringify(job))
+		if (job != undefined) {
+			// Sign up for this task
+			this.jobBoard.assignJobByHash(job.hash, this.spawn.id)
 		}
 	}
 }
 
-RoomManager.prototype.getPrefferedEnergyPickUp = function(ignore) {
-	if (ignore == undefined) {
-		ignore = {}
-		ignore.storage = false
-		ignore.spawn = false
-	}
-	// FIRST: check for a storage unit
-	var storages = this.room.find(FIND_MY_STRUCTURES, {
-		filter: (structure) => {
-			return (structure.structureType == STRUCTURE_STORAGE &&
-				    structure.store[RESOURCE_ENERGY] > 0);
-		}
-	});
-	if ((storages != undefined && storages.length > 0) && (ignore.storage != true)) {
-		return storages;
-	}
+RoomManager.prototype.init = function() {
+	// Get the level of the room
+	this.level = this.getRoomLevel()
 
-	// SECOND: if no storages, try non-full spawn or extensions
-	var spawns_and_extensions = this.room.find(FIND_MY_STRUCTURES, {
-		filter: (structure) => {
-			return(((structure.structureType == STRUCTURE_SPAWN) ||
-				    (structure.structureType == STRUCTURE_EXTENSION)) &&
-					(structure.energy > 0));
-		}
-	});
-	if ((spawns_and_extensions != undefined && spawns_and_extensions.length > 0) && (ignore.spawn != true)) {
-		return spawns_and_extensions;
-	}
+	// A few things are changed based on the current level
+	// 1. The number of each type of creep to make
+	// 2. The priority of each of these creeps (Make harvester before upgrader, etc.)
+	this.population = new Population(this.room, this.level)
 
-	// THIRD: try collecting from links in the room that have no miners subscribed
-	var toLinks = this.room.find(FIND_MY_STRUCTURES, {
-		filter: (structure) => {
-			return (structure.structureType == STRUCTURE_LINK &&
-				    structure.subscribersOfType("MinerCreep") < 1);
-		}
-	});
+	this.jobBoard = new JobBoard(this.room)
 
-	if (toLinks != undefined && toLinks.length > 0) {
-		return toLinks;
-	}
+	this.creepFactory = new CreepFactory(this);
 
-	// GIVE UP!
-	return undefined;
+	this.loadCreeps()
+
+	this.jobBoard.addJob(this.jobBoard.jobTypes.BUILD_CREEP, 1, {type: 'MinerCreep', level: this.level})
 }
 
-// returns the object that energy should be brought to
-// based on structures available in the current room.
-RoomManager.prototype.getPrefferedEnergyDropOff = function() {
-	// FIRST: check for a storage unit
-	var storages = this.room.find(FIND_MY_STRUCTURES, {
-		filter: (structures) => {
-			return (structures.structureType == STRUCTURE_STORAGE);
-		}
-	});
-	if (storages != undefined && storages.length > 0) {
-		return storages;
-	}
-
-	// SECOND: if no storages, try non-full spawn or extensions
-	var spawns_and_extensions = this.room.find(FIND_MY_STRUCTURES, {
-		filter: (structures) => {
-			return(((structures.structureType == STRUCTURE_SPAWN) ||
-				    (structures.structureType == STRUCTURE_EXTENSION)) &&
-					(structures.energy < structures.energyCapacity));
-		}
-	});
-	if (spawns_and_extensions != undefined && spawns_and_extensions.length > 0) {
-		return spawns_and_extensions;
-	}
-
-	// THIRD: nothing is available
-	return undefined;
+/**
+ * Gets the level of the current room based on
+ * a variety of metrics.
+ */
+RoomManager.prototype.getRoomLevel = function() {
+	return 0;
 }
+
+/**
+ * Iterates over all existing creeps and assigns them
+ * to be the correct type of creep based on memory.
+ */
+RoomManager.prototype.loadCreeps = function() {
+	var creeps = this.room.find(FIND_MY_CREEPS);
+	for(var n in creeps) {
+		var c = this.creepFactory.load(creeps[n]);
+		if(c) {
+			this.creeps.push(c);
+		}
+	}
+};
 
 module.exports = RoomManager;

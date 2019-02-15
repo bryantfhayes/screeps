@@ -25,33 +25,5 @@ GameManager.getRoomManagers = function() {
     return roomManagers;
 };
 
-GameManager.loadSpecialCreeps = function() {
-    for (var n in Game.spawns) {
-        if (Game.spawns[n].canCreateCreep(SC_CHRISTOPHER_COLUMBUS.parts, SC_CHRISTOPHER_COLUMBUS.name) == OK) {
-            
-            // Conquerer of new lands: Christopher Columbus!
-            if (Game.creeps[SC_CHRISTOPHER_COLUMBUS.name] == undefined) {
-                Game.spawns[n].createCreep(SC_CHRISTOPHER_COLUMBUS.parts, SC_CHRISTOPHER_COLUMBUS.name);
-                console.log("Christopher Columbus was born in room: " + Game.spawns[n].room.name)
-            }
-        } else {
-            //console.log(Game.spawns[n].room.name + "'s spawn cant produce!")
-        }
-    }
-}
-
-GameManager.christopher_columbus = function() {
-    var creep = Game.creeps[SC_CHRISTOPHER_COLUMBUS.name];
-    var flag = Game.flags["columbus"];
-    if (flag != undefined && creep != undefined) {
-        creep.moveTo(flag);        
-    }
-}
-
-GameManager.performSpecialCreepActions = function() {
-    if (Game.creeps[SC_CHRISTOPHER_COLUMBUS.name] != undefined) {
-        this.christopher_columbus();
-    }
-}
 
 module.exports = GameManager;
